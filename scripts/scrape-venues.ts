@@ -1,8 +1,41 @@
 #!/usr/bin/env tsx
 
+import { config } from 'dotenv'
+import { existsSync } from 'fs'
+import { join } from 'path'
+
+// Load environment variables
+const envLocalPath = join(process.cwd(), '.env.local')
+if (existsSync(envLocalPath)) {
+  config({ path: envLocalPath })
+}
+
 import { chromium, Browser, Page } from 'playwright'
-import { supabaseAdmin } from '../src/lib/supabase'
-import { ScrapingQueueItem } from '../src/lib/types'
+import { createClient } from '@supabase/supabase-js'
+
+// Create Supabase admin client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Missing Supabase credentials')
+  process.exit(1)
+}
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
+
+interface ScrapingQueueItem {
+  id: string
+  url: string
+  venue_name?: string
+  search_query?: string
+  status: string
+}
 
 // Scraping patterns by domain for common venue websites
 const scrapingPatterns: Record<string, any> = {

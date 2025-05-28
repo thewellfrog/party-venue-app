@@ -1,34 +1,42 @@
 #!/usr/bin/env tsx
 
-import 'dotenv/config'
+import { config } from "dotenv";
+import { existsSync } from "fs";
+import { join } from "path";
 
-console.log('🔍 Environment Check')
-console.log('===================')
+// Load environment variables
+const envLocalPath = join(process.cwd(), ".env.local");
+if (existsSync(envLocalPath)) {
+  config({ path: envLocalPath });
+}
+
+console.log("🔍 Environment Check");
+console.log("===================");
 
 const requiredVars = [
-  'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY', 
-  'SUPABASE_SERVICE_ROLE_KEY',
-  'OPENAI_API_KEY'
-]
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "OPENAI_API_KEY",
+];
 
-let allPresent = true
+let allPresent = true;
 
 for (const varName of requiredVars) {
-  const value = process.env[varName]
+  const value = process.env[varName];
   if (value) {
-    console.log(`✅ ${varName}: ${value.substring(0, 20)}...`)
+    console.log(`✅ ${varName}: ${value.substring(0, 20)}...`);
   } else {
-    console.log(`❌ ${varName}: Missing`)
-    allPresent = false
+    console.log(`❌ ${varName}: Missing`);
+    allPresent = false;
   }
 }
 
-console.log('\n📋 Summary:')
+console.log("\n📋 Summary:");
 if (allPresent) {
-  console.log('✅ All environment variables are present!')
-  console.log('🚀 Ready to proceed with database setup')
+  console.log("✅ All environment variables are present!");
+  console.log("🚀 Ready to proceed with database setup");
 } else {
-  console.log('❌ Missing environment variables')
-  console.log('💡 Please check your .env.local file')
+  console.log("❌ Missing environment variables");
+  console.log("💡 Please check your .env.local file");
 }

@@ -1,6 +1,32 @@
 #!/usr/bin/env tsx
 
-import { supabaseAdmin } from '../src/lib/supabase'
+import { config } from 'dotenv'
+import { existsSync } from 'fs'
+import { join } from 'path'
+
+// Load environment variables
+const envLocalPath = join(process.cwd(), '.env.local')
+if (existsSync(envLocalPath)) {
+  config({ path: envLocalPath })
+}
+
+import { createClient } from '@supabase/supabase-js'
+
+// Create Supabase admin client after env is loaded
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Missing Supabase credentials')
+  process.exit(1)
+}
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
 
 // Comprehensive search queries for venue discovery
 const searchQueries = [
@@ -94,25 +120,31 @@ async function searchDuckDuckGo(query: string): Promise<string[]> {
 }
 
 async function saveUrlsToDatabase(urls: string[], searchQuery: string) {
-  const urlsToInsert = urls.map(url => ({
-    url,
-    search_query: searchQuery,
-    status: 'pending' as const,
-    created_at: new Date().toISOString()
-  }))
-  
-  const { error } = await supabaseAdmin
-    .from('scraping_queue')
-    .upsert(urlsToInsert, { 
-      onConflict: 'url',
-      ignoreDuplicates: true 
-    })
-  
-  if (error) {
-    console.error('Error saving URLs:', error)
-  } else {
-    console.log(`Saved ${urls.length} URLs for query: ${searchQuery}`)
+  for (const url of urls) {
+    // Check if URL already exists
+    const { data: existing } = await supabaseAdmin
+      .from('scraping_queue')
+      .select('id')
+      .eq('url', url)
+      .single()
+    
+    if (!existing) {
+      const { error } = await supabaseAdmin
+        .from('scraping_queue')
+        .insert({
+          url,
+          search_query: searchQuery,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        })
+      
+      if (error) {
+        console.error(`Error saving URL ${url}:`, error.message)
+      }
+    }
   }
+  
+  console.log(`Processed ${urls.length} URLs for query: ${searchQuery}`)
 }
 
 async function main() {

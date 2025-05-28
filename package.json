@@ -13,7 +13,15 @@
     "db:seed": "tsx scripts/seed-data.ts",
     "scrape:urls": "tsx scripts/collect-urls.ts",
     "scrape:venues": "tsx scripts/scrape-venues.ts",
-    "scrape:extract": "tsx scripts/extract-data.ts"
+    "scrape:extract": "tsx scripts/extract-data.ts",
+    "scrape:create": "tsx scripts/create-venues.ts",
+    "debug:queue": "node debug-data.js",
+    "debug:status": "node status-check.js",
+    "reset:queue": "node reset-and-add-urls.js",
+    "monitor": "node monitor-pipeline.js",
+    "test:pipeline": "node full-pipeline-test.js",
+    "run:pipeline": "node run-pipeline.js",
+    "show:results": "node show-results.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

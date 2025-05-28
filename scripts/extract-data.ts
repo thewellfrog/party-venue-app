@@ -1,13 +1,32 @@
 #!/usr/bin/env tsx
 
 import { config } from 'dotenv'
-import { resolve } from 'path'
+import { existsSync } from 'fs'
+import { join } from 'path'
 import OpenAI from 'openai'
+import { createClient } from '@supabase/supabase-js'
 
-// Load environment variables from .env.local
-config({ path: resolve(process.cwd(), '.env.local') })
+// Load environment variables
+const envLocalPath = join(process.cwd(), '.env.local')
+if (existsSync(envLocalPath)) {
+  config({ path: envLocalPath })
+}
 
-import { supabaseAdmin } from './lib/supabase-script'
+// Create Supabase admin client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Missing Supabase credentials')
+  process.exit(1)
+}
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
