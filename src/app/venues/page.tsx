@@ -174,6 +174,15 @@ export default function VenuesPage() {
     loadVenues()
   }
 
+  const clearFilters = () => {
+    setSearchLocation('')
+    setAgeFilter('')
+    setLoading(true)
+    loadVenues()
+  }
+
+  const hasActiveFilters = searchLocation || ageFilter
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -224,10 +233,19 @@ export default function VenuesPage() {
                 </Select>
               </div>
 
-              <div className="flex items-end">
-                <Button onClick={handleSearch} className="w-full md:w-auto">
+              <div className="flex items-end gap-3">
+                <Button onClick={handleSearch} className="flex-1 md:flex-none md:w-auto">
                   Search Venues
                 </Button>
+                {hasActiveFilters && (
+                  <Button 
+                    variant="outline" 
+                    onClick={clearFilters}
+                    className="flex-1 md:flex-none md:w-auto"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>

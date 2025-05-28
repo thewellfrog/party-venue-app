@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Loading } from '@/components/ui/loading'
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui/modal'
 import { getVenuesForReview, createVenueFromExtraction } from '@/lib/database'
 
 interface ExtractionItem {
@@ -306,52 +307,61 @@ export default function ReviewPage() {
       </div>
 
       {/* Rejection Modal */}
-      {rejectingItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="max-w-md w-full">
-            <CardHeader>
-              <CardTitle>Reject Venue</CardTitle>
-              <CardDescription>
-                Please provide a reason for rejecting &ldquo;{rejectingItem.venue_name || 'this venue'}&rdquo;
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="rejection-reason">Rejection Reason</Label>
-                <Textarea
-                  id="rejection-reason"
-                  placeholder="e.g., Incomplete information, not a party venue, duplicate entry..."
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  className="mt-1"
-                  rows={4}
-                />
-              </div>
-              
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setRejectingItem(null)
-                    setRejectionReason('')
-                  }}
-                  disabled={processing === rejectingItem.id}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={confirmRejectVenue}
-                  disabled={!rejectionReason.trim() || processing === rejectingItem.id}
-                  className="flex-1"
-                >
-                  {processing === rejectingItem.id ? 'Rejecting...' : 'Confirm Rejection'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <Modal 
+        isOpen={!!rejectingItem} 
+        onClose={() => {
+          setRejectingItem(null)
+          setRejectionReason('')
+        }}
+        className="max-w-md"
+      >
+        <ModalHeader onClose={() => {
+          setRejectingItem(null)
+          setRejectionReason('')
+        }}>
+          <div>
+            <h3 className="text-lg font-semibold">Reject Venue</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Please provide a reason for rejecting &ldquo;{rejectingItem?.venue_name || 'this venue'}&rdquo;
+            </p>
+          </div>
+        </ModalHeader>
+        
+        <ModalBody>
+          <div>
+            <Label htmlFor="rejection-reason">Rejection Reason</Label>
+            <Textarea
+              id="rejection-reason"
+              placeholder="e.g., Incomplete information, not a party venue, duplicate entry..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="mt-1"
+              rows={4}
+            />
+          </div>
+        </ModalBody>
+        
+        <ModalFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setRejectingItem(null)
+              setRejectionReason('')
+            }}
+            disabled={processing === rejectingItem?.id}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmRejectVenue}
+            disabled={!rejectionReason.trim() || processing === rejectingItem?.id}
+            className="flex-1"
+          >
+            {processing === rejectingItem?.id ? 'Rejecting...' : 'Confirm Rejection'}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   )
 }
