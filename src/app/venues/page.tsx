@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectOption } from '@/components/ui/select'
+import { Loading } from '@/components/ui/loading'
 import { getPublishedVenues } from '@/lib/database'
 import type { Venue } from '@/lib/types'
 
@@ -235,7 +236,7 @@ export default function VenuesPage() {
         {/* Results */}
         {loading ? (
           <div className="text-center py-8">
-            <div>Loading venues...</div>
+            <Loading size="lg" text="Loading venues..." />
           </div>
         ) : venues.length === 0 ? (
           <Card>

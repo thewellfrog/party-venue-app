@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Loading } from '@/components/ui/loading'
 import { getVenuesForReview, createVenueFromExtraction } from '@/lib/database'
 
 interface ExtractionItem {
@@ -125,7 +126,7 @@ export default function ReviewPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Loading review items...</div>
+        <Loading size="lg" text="Loading review items..." />
       </div>
     )
   }
