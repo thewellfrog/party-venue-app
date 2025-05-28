@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "db:setup": "tsx scripts/setup-database.ts",
     "db:migrate": "echo 'Run the SQL in supabase/schema.sql in your Supabase dashboard'",
     "db:seed": "tsx scripts/seed-data.ts",
     "scrape:urls": "tsx scripts/collect-urls.ts",
