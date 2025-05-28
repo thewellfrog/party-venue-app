@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectOption } from '@/components/ui/select'
 import { getPublishedVenues } from '@/lib/database'
 import type { Venue } from '@/lib/types'
 
@@ -207,18 +208,19 @@ export default function VenuesPage() {
               
               <div>
                 <Label htmlFor="age">Age Range</Label>
-                <select
+                <Select
                   id="age"
                   value={ageFilter}
                   onChange={(e) => setAgeFilter(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
+                  placeholder="All ages"
+                  className="mt-1"
                 >
-                  <option value="">All ages</option>
-                  <option value="1-3">1-3 years</option>
-                  <option value="4-6">4-6 years</option>
-                  <option value="7-10">7-10 years</option>
-                  <option value="11-16">11-16 years</option>
-                </select>
+                  <SelectOption value="">All ages</SelectOption>
+                  <SelectOption value="1-3">1-3 years</SelectOption>
+                  <SelectOption value="4-6">4-6 years</SelectOption>
+                  <SelectOption value="7-10">7-10 years</SelectOption>
+                  <SelectOption value="11-16">11-16 years</SelectOption>
+                </Select>
               </div>
 
               <div className="flex items-end">

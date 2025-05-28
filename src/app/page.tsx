@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Select, SelectOption } from '@/components/ui/select'
 
 export default function Home() {
   const [location, setLocation] = useState('')
@@ -45,17 +46,18 @@ export default function Home() {
                 />
               </div>
               <div className="sm:w-32">
-                <select 
+                <Select 
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
+                  placeholder="Age"
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
-                  <option value="">Age</option>
-                  <option value="1-3">1-3 years</option>
-                  <option value="4-6">4-6 years</option>
-                  <option value="7-10">7-10 years</option>
-                  <option value="11+">11+ years</option>
-                </select>
+                  <SelectOption value="">Age</SelectOption>
+                  <SelectOption value="1-3">1-3 years</SelectOption>
+                  <SelectOption value="4-6">4-6 years</SelectOption>
+                  <SelectOption value="7-10">7-10 years</SelectOption>
+                  <SelectOption value="11+">11+ years</SelectOption>
+                </Select>
               </div>
               <button 
                 type="submit"
