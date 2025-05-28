@@ -2,9 +2,30 @@
 
 import { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectOption } from '@/components/ui/select'
+import { LoadingSpinner } from '@/components/ui/loading'
 import type { Venue, PartyPackage } from '@/lib/types'
+
+const contactSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(1, 'Phone number is required'),
+  childAge: z.string().min(1, 'Please select child age'),
+  partyDate: z.string().min(1, 'Party date is required'),
+  guestCount: z.string().min(1, 'Number of guests is required'),
+  packageInterest: z.string().optional(),
+  message: z.string().min(10, 'Please provide more details (minimum 10 characters)'),
+})
+
+type ContactFormData = z.infer<typeof contactSchema>
 
 interface VenueDetailPageProps {
   params: Promise<{
@@ -18,6 +39,16 @@ export default function VenueDetailPage({ params }: VenueDetailPageProps) {
   const [packages, setPackages] = useState<PartyPackage[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
+  const [contactSuccess, setContactSuccess] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactSchema),
+  })
 
   useEffect(() => {
     async function loadData() {
@@ -169,6 +200,25 @@ export default function VenueDetailPage({ params }: VenueDetailPageProps) {
     }
   }
 
+  const onContactSubmit = async (data: ContactFormData) => {
+    try {
+      // TODO: Implement actual contact form submission
+      console.log('Contact form submission:', data)
+      
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      setContactSuccess(true)
+      reset()
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => setContactSuccess(false), 5000)
+    } catch (error) {
+      console.error('Error submitting contact form:', error)
+      alert('There was an error sending your inquiry. Please try again.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -185,7 +235,8 @@ export default function VenueDetailPage({ params }: VenueDetailPageProps) {
     { id: 'overview', label: 'Overview' },
     { id: 'packages', label: 'Packages & Pricing' },
     { id: 'parent-info', label: 'Parent Info' },
-    { id: 'location', label: 'Location' }
+    { id: 'location', label: 'Location' },
+    { id: 'contact', label: 'Contact & Inquiry' }
   ]
 
   return (
@@ -585,6 +636,234 @@ export default function VenueDetailPage({ params }: VenueDetailPageProps) {
               <CardContent>
                 <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
                   <span className="text-gray-500">Interactive Map Coming Soon</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'contact' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Send an Inquiry</CardTitle>
+                <CardDescription>
+                  Get in touch with {venue.name} to book your party or ask any questions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {contactSuccess ? (
+                  <div className="text-center py-8">
+                    <div className="text-green-600 text-lg font-medium mb-2">✓ Inquiry Sent Successfully!</div>
+                    <p className="text-gray-600">
+                      Thank you for your inquiry. {venue.name} will get back to you within 24 hours.
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit(onContactSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="name">Your Name *</Label>
+                        <Input
+                          id="name"
+                          {...register('name')}
+                          placeholder="Enter your full name"
+                          className="mt-1"
+                          aria-invalid={errors.name ? 'true' : 'false'}
+                        />
+                        {errors.name && (
+                          <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email">Email Address *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          {...register('email')}
+                          placeholder="your@email.com"
+                          className="mt-1"
+                          aria-invalid={errors.email ? 'true' : 'false'}
+                        />
+                        {errors.email && (
+                          <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="phone">Phone Number *</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          {...register('phone')}
+                          placeholder="07123 456789"
+                          className="mt-1"
+                          aria-invalid={errors.phone ? 'true' : 'false'}
+                        />
+                        {errors.phone && (
+                          <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="childAge">Child&apos;s Age *</Label>
+                        <Select
+                          id="childAge"
+                          {...register('childAge')}
+                          className="mt-1"
+                          aria-invalid={errors.childAge ? 'true' : 'false'}
+                        >
+                          <SelectOption value="">Select age</SelectOption>
+                          <SelectOption value="1">1 year</SelectOption>
+                          <SelectOption value="2">2 years</SelectOption>
+                          <SelectOption value="3">3 years</SelectOption>
+                          <SelectOption value="4">4 years</SelectOption>
+                          <SelectOption value="5">5 years</SelectOption>
+                          <SelectOption value="6">6 years</SelectOption>
+                          <SelectOption value="7">7 years</SelectOption>
+                          <SelectOption value="8">8 years</SelectOption>
+                          <SelectOption value="9">9 years</SelectOption>
+                          <SelectOption value="10+">10+ years</SelectOption>
+                        </Select>
+                        {errors.childAge && (
+                          <p className="mt-1 text-sm text-red-600">{errors.childAge.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="partyDate">Preferred Party Date *</Label>
+                        <Input
+                          id="partyDate"
+                          type="date"
+                          {...register('partyDate')}
+                          className="mt-1"
+                          min={new Date().toISOString().split('T')[0]}
+                          aria-invalid={errors.partyDate ? 'true' : 'false'}
+                        />
+                        {errors.partyDate && (
+                          <p className="mt-1 text-sm text-red-600">{errors.partyDate.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="guestCount">Number of Children *</Label>
+                        <Select
+                          id="guestCount"
+                          {...register('guestCount')}
+                          className="mt-1"
+                          aria-invalid={errors.guestCount ? 'true' : 'false'}
+                        >
+                          <SelectOption value="">Select number</SelectOption>
+                          {Array.from({ length: 30 }, (_, i) => i + 1).map(num => (
+                            <SelectOption key={num} value={num.toString()}>{num} children</SelectOption>
+                          ))}
+                        </Select>
+                        {errors.guestCount && (
+                          <p className="mt-1 text-sm text-red-600">{errors.guestCount.message}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="packageInterest">Package Interest (Optional)</Label>
+                      <Select
+                        id="packageInterest"
+                        {...register('packageInterest')}
+                        className="mt-1"
+                      >
+                        <SelectOption value="">No specific package</SelectOption>
+                        {packages.map(pkg => (
+                          <SelectOption key={pkg.id} value={pkg.name}>{pkg.name} - £{pkg.base_price}</SelectOption>
+                        ))}
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="message">Your Message *</Label>
+                      <Textarea
+                        id="message"
+                        {...register('message')}
+                        placeholder="Tell us about your party requirements, any special requests, dietary requirements, or questions you may have..."
+                        className="mt-1"
+                        rows={5}
+                        aria-invalid={errors.message ? 'true' : 'false'}
+                      />
+                      {errors.message && (
+                        <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-4">
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 md:flex-none md:w-auto"
+                      >
+                        {isSubmitting ? (
+                          <div className="flex items-center gap-2">
+                            <LoadingSpinner size="sm" />
+                            Sending Inquiry...
+                          </div>
+                        ) : (
+                          'Send Inquiry'
+                        )}
+                      </Button>
+                      
+                      {venue.phone && (
+                        <a href={`tel:${venue.phone}`}>
+                          <Button variant="outline">
+                            Call {venue.phone}
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Venue Contact Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Venue Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium mb-2">Address</h4>
+                    <p className="text-gray-600">
+                      {venue.address_line_1}<br />
+                      {venue.city}, {venue.postcode}
+                    </p>
+                  </div>
+                  
+                  {venue.phone && (
+                    <div>
+                      <h4 className="font-medium mb-2">Phone</h4>
+                      <a href={`tel:${venue.phone}`} className="text-blue-600 hover:underline">
+                        {venue.phone}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {venue.email && (
+                    <div>
+                      <h4 className="font-medium mb-2">Email</h4>
+                      <a href={`mailto:${venue.email}`} className="text-blue-600 hover:underline">
+                        {venue.email}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {venue.website && (
+                    <div>
+                      <h4 className="font-medium mb-2">Website</h4>
+                      <a href={venue.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        Visit Website
+                      </a>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
