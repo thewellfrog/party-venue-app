@@ -2,35 +2,47 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { LoadingSpinner } from '@/components/ui/loading'
 // import { signInWithEmail } from '@/lib/auth'
 
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+type LoginFormData = z.infer<typeof loginSchema>
+
 export default function AdminLogin() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  const onSubmit = async (data: LoginFormData) => {
     setError('')
 
     try {
       // TODO: Implement actual authentication
-      console.log('Login attempt:', { email, password })
+      console.log('Login attempt:', data)
       
       // Mock successful login for demo
       await new Promise(resolve => setTimeout(resolve, 1000))
       router.push('/admin')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -45,18 +57,20 @@ export default function AdminLogin() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...register('email')}
                   className="mt-1"
                   placeholder="admin@example.com"
+                  aria-invalid={errors.email ? 'true' : 'false'}
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                )}
               </div>
               
               <div>
@@ -64,12 +78,14 @@ export default function AdminLogin() {
                 <Input
                   id="password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register('password')}
                   className="mt-1"
                   placeholder="Enter your password"
+                  aria-invalid={errors.password ? 'true' : 'false'}
                 />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                )}
               </div>
 
               {error && (
@@ -81,9 +97,16 @@ export default function AdminLogin() {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={loading}
+                disabled={isSubmitting}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    Signing in...
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
               </Button>
             </form>
           </CardContent>

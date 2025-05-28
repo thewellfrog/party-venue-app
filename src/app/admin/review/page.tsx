@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { getVenuesForReview, createVenueFromExtraction } from '@/lib/database'
 
 interface ExtractionItem {
@@ -23,6 +25,8 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(true)
   const [selectedItem, setSelectedItem] = useState<ExtractionItem | null>(null)
   const [processing, setProcessing] = useState<string | null>(null)
+  const [rejectingItem, setRejectingItem] = useState<ExtractionItem | null>(null)
+  const [rejectionReason, setRejectionReason] = useState('')
 
   useEffect(() => {
     loadReviewItems()
@@ -77,10 +81,38 @@ export default function ReviewPage() {
     }
   }
 
-  async function rejectVenue(item: ExtractionItem) {
-    // TODO: Implement rejection logic
-    console.log('Rejecting venue:', item.id)
-    alert('Rejection functionality will be implemented in next phase')
+  function startRejectVenue(item: ExtractionItem) {
+    setRejectingItem(item)
+    setRejectionReason('')
+  }
+
+  async function confirmRejectVenue() {
+    if (!rejectingItem) return
+    
+    setProcessing(rejectingItem.id)
+    
+    try {
+      // TODO: Implement actual rejection API call
+      console.log('Rejecting venue:', rejectingItem.id, 'Reason:', rejectionReason)
+      
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Remove from list
+      setItems(prev => prev.filter(item => item.id !== rejectingItem.id))
+      setRejectingItem(null)
+      setRejectionReason('')
+      
+      if (selectedItem?.id === rejectingItem.id) {
+        setSelectedItem(null)
+      }
+      
+    } catch (error) {
+      console.error('Error rejecting venue:', error)
+      alert('Error rejecting venue. Please try again.')
+    } finally {
+      setProcessing(null)
+    }
   }
 
   const getConfidenceColor = (score?: number) => {
@@ -245,7 +277,7 @@ export default function ReviewPage() {
                       </Button>
                       <Button 
                         variant="outline"
-                        onClick={() => rejectVenue(selectedItem)}
+                        onClick={() => startRejectVenue(selectedItem)}
                         disabled={processing === selectedItem.id}
                       >
                         Reject
@@ -271,6 +303,54 @@ export default function ReviewPage() {
           </div>
         )}
       </div>
+
+      {/* Rejection Modal */}
+      {rejectingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <CardTitle>Reject Venue</CardTitle>
+              <CardDescription>
+                Please provide a reason for rejecting &ldquo;{rejectingItem.venue_name || 'this venue'}&rdquo;
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="rejection-reason">Rejection Reason</Label>
+                <Textarea
+                  id="rejection-reason"
+                  placeholder="e.g., Incomplete information, not a party venue, duplicate entry..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="mt-1"
+                  rows={4}
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setRejectingItem(null)
+                    setRejectionReason('')
+                  }}
+                  disabled={processing === rejectingItem.id}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={confirmRejectVenue}
+                  disabled={!rejectionReason.trim() || processing === rejectingItem.id}
+                  className="flex-1"
+                >
+                  {processing === rejectingItem.id ? 'Rejecting...' : 'Confirm Rejection'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
